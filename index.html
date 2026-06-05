@@ -1,0 +1,1393 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>智慧社区工作台演示</title>
+  <style>
+    :root {
+      --ink: #16233d;
+      --muted: #7d8aa4;
+      --line: #e8edf5;
+      --bg: #f4f6f9;
+      --panel: #ffffff;
+      --blue: #174c8f;
+      --blue-2: #286fbf;
+      --teal: #0b8f83;
+      --rose: #d84c69;
+      --amber: #c27a14;
+      --violet: #6955d9;
+      --green: #2d8f55;
+      --shadow: 0 10px 28px rgba(22, 35, 61, 0.08);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      background: #dfe5ee;
+      color: var(--ink);
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .app {
+      width: 100%;
+      min-height: 100vh;
+      background: var(--bg);
+      padding-bottom: calc(76px + env(safe-area-inset-bottom));
+    }
+
+    .status {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 44px;
+      padding: env(safe-area-inset-top) 18px 0;
+      background: #0e2b59;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      opacity: 0.92;
+    }
+
+    .signal {
+      width: 17px;
+      height: 10px;
+      border-radius: 2px;
+      background:
+        linear-gradient(to top, #fff 0 30%, transparent 30%),
+        linear-gradient(to top, transparent 0 36%, #fff 36% 62%, transparent 62%),
+        linear-gradient(to top, transparent 0 68%, #fff 68%);
+    }
+
+    .battery {
+      width: 22px;
+      height: 11px;
+      border: 1.7px solid #fff;
+      border-radius: 3px;
+      position: relative;
+    }
+
+    .battery::before {
+      content: "";
+      position: absolute;
+      inset: 2px 6px 2px 2px;
+      background: #fff;
+      border-radius: 1px;
+    }
+
+    .battery::after {
+      content: "";
+      position: absolute;
+      right: -4px;
+      top: 3px;
+      width: 2px;
+      height: 5px;
+      background: #fff;
+      border-radius: 1px;
+    }
+
+    .screen {
+      display: none;
+      animation: fadeIn 0.18s ease;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero {
+      background:
+        linear-gradient(145deg, rgba(13, 34, 72, 0.96), rgba(23, 76, 143, 0.94)),
+        radial-gradient(circle at 80% 16%, rgba(20, 143, 131, 0.38), transparent 34%);
+      color: #fff;
+      padding: 24px 18px 32px;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: block;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.18;
+      font-weight: 800;
+    }
+
+    .hero p {
+      margin: 8px 0 0;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 13px;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.26);
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      margin-top: 22px;
+      overflow: hidden;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .stat {
+      min-width: 0;
+      padding: 13px 6px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 21px;
+      line-height: 1.1;
+      font-weight: 850;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 6px;
+      color: rgba(255, 255, 255, 0.62);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .stat .hot { color: #ffd16a; }
+    .stat .warn { color: #ff9a76; }
+
+    .section {
+      padding: 14px 14px 0;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid rgba(232, 237, 245, 0.86);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .module {
+      padding: 15px 14px 17px;
+      margin-bottom: 12px;
+    }
+
+    .module:first-child {
+      margin-top: -28px;
+    }
+
+    .module-head {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding-bottom: 13px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .module-mark,
+    .action-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      flex: 0 0 auto;
+    }
+
+    .blue-bg { background: #e8f1ff; color: var(--blue-2); }
+    .rose-bg { background: #ffe8ee; color: var(--rose); }
+    .teal-bg { background: #dff6f1; color: var(--teal); }
+    .amber-bg { background: #fff3d9; color: var(--amber); }
+    .violet-bg { background: #eeeaff; color: var(--violet); }
+    .slate-bg { background: #eef2f7; color: #526071; }
+    .green-bg { background: #e6f6ed; color: var(--green); }
+
+    .module-title {
+      min-width: 0;
+    }
+
+    .module-title h2 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.15;
+    }
+
+    .module-title p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px 8px;
+    }
+
+    .action {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: var(--ink);
+      background: transparent;
+      padding: 0;
+      position: relative;
+    }
+
+    .action span {
+      width: 100%;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.25;
+      color: #31405c;
+      overflow-wrap: anywhere;
+    }
+
+    .badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: #d82d45;
+      color: #fff;
+      border: 2px solid #fff;
+      font-size: 11px;
+      line-height: 14px;
+      font-weight: 800;
+    }
+
+    .feed {
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .tab {
+      height: 45px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 13px;
+      font-weight: 700;
+      position: relative;
+    }
+
+    .tab.active {
+      color: var(--blue);
+    }
+
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 36px;
+      height: 3px;
+      transform: translateX(-50%);
+      background: var(--blue-2);
+      border-radius: 3px 3px 0 0;
+    }
+
+    .feed-list {
+      display: none;
+    }
+
+    .feed-list.active {
+      display: block;
+    }
+
+    .feed-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 14px 15px;
+      border-bottom: 1px solid #f0f3f8;
+    }
+
+    .feed-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      height: 21px;
+      padding: 0 8px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .feed-item h3 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.55;
+      font-weight: 650;
+    }
+
+    .feed-item p {
+      margin: 7px 0 0;
+      color: #9aa6b9;
+      font-size: 12px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 10px;
+      background: #d82d45;
+      flex: 0 0 auto;
+    }
+
+    .page-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 16px 12px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 44px;
+      z-index: 10;
+    }
+
+    .page-head h2 {
+      margin: 0;
+      font-size: 19px;
+    }
+
+    .page-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .back {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #eef2f7;
+      color: var(--ink);
+      font-size: 20px;
+      flex: 0 0 auto;
+    }
+
+    .content {
+      padding: 14px;
+    }
+
+    .search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 42px;
+      padding: 0 12px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .search input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      color: var(--ink);
+      background: transparent;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .resident,
+    .ticket,
+    .form-card,
+    .archive-preview {
+      padding: 14px;
+    }
+
+    .resident {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .resident-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #e8f1ff;
+      color: var(--blue);
+      font-weight: 850;
+      flex: 0 0 auto;
+    }
+
+    .resident-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .resident h3,
+    .ticket h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .resident p,
+    .ticket p,
+    .form-card p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .mini-tag {
+      display: inline-flex;
+      align-items: center;
+      height: 20px;
+      padding: 0 7px;
+      border-radius: 999px;
+      background: #f0f3f8;
+      color: #526071;
+      font-size: 11px;
+      font-weight: 700;
+      margin: 8px 5px 0 0;
+    }
+
+    .filter {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .chip {
+      height: 34px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--line);
+      color: #526071;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .chip.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .ticket {
+      border-left: 4px solid var(--blue-2);
+    }
+
+    .ticket[data-status="pending"] { border-left-color: var(--rose); }
+    .ticket[data-status="processing"] { border-left-color: var(--amber); }
+    .ticket[data-status="resolved"] { border-left-color: var(--green); }
+
+    .status-pill {
+      height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .pending { background: #ffe8ee; color: var(--rose); }
+    .processing { background: #fff3d9; color: var(--amber); }
+    .resolved { background: #e6f6ed; color: var(--green); }
+
+    .form-card {
+      margin-bottom: 12px;
+    }
+
+    .label {
+      display: block;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .field,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      outline: 0;
+      border-radius: 8px;
+      background: #fbfcfe;
+      color: var(--ink);
+      padding: 12px;
+      font-size: 14px;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .upload {
+      min-height: 112px;
+      border: 1px dashed #b8c5d8;
+      border-radius: 8px;
+      background: #fbfcfe;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      padding: 16px;
+    }
+
+    .upload strong {
+      display: block;
+      color: var(--blue);
+      margin-top: 8px;
+    }
+
+    .primary {
+      width: 100%;
+      height: 46px;
+      border-radius: 8px;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 850;
+      box-shadow: 0 8px 18px rgba(23, 76, 143, 0.22);
+    }
+
+    .secondary {
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 8px;
+      background: #eef2f7;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .archive-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .file-box {
+      min-height: 78px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      padding: 10px;
+      background: #f0f6ff;
+      color: var(--blue);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .archive-preview dl {
+      margin: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .archive-preview div {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 10px;
+    }
+
+    .archive-preview div:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    dt {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    dd {
+      margin: 0;
+      text-align: right;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .doc-result {
+      white-space: pre-wrap;
+      background: #fbfcfe;
+      border: 1px solid var(--line);
+      padding: 13px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.65;
+      color: #31405c;
+    }
+
+    .sheet {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      pointer-events: none;
+      background: rgba(12, 22, 39, 0);
+      transition: background 0.22s ease;
+    }
+
+    .sheet.open {
+      pointer-events: auto;
+      background: rgba(12, 22, 39, 0.48);
+    }
+
+    .sheet-panel {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      max-height: 78vh;
+      overflow: auto;
+      padding: 10px 14px calc(18px + env(safe-area-inset-bottom));
+      border-radius: 16px 16px 0 0;
+      background: #fff;
+      transform: translateY(102%);
+      transition: transform 0.25s ease;
+    }
+
+    .sheet.open .sheet-panel {
+      transform: translateY(0);
+    }
+
+    .handle {
+      width: 42px;
+      height: 4px;
+      border-radius: 999px;
+      background: #d8e0eb;
+      margin: 0 auto 14px;
+    }
+
+    .sheet-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .sheet-head h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .close {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #eef2f7;
+      color: var(--ink);
+      font-weight: 850;
+    }
+
+    .tips-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .tip {
+      display: flex;
+      gap: 12px;
+      padding: 13px;
+      border-radius: 8px;
+      background: #fbfcfe;
+      border: 1px solid var(--line);
+    }
+
+    .tip.urgent {
+      background: #fff9ef;
+      border-color: #ffdca9;
+    }
+
+    .tip-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+    }
+
+    .tip h3 {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .tip p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .report-bars {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 74px 1fr 36px;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #eef2f7;
+      overflow: hidden;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--blue-2), var(--teal));
+    }
+
+    .fab {
+      position: fixed;
+      right: 16px;
+      bottom: calc(88px + env(safe-area-inset-bottom));
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #fff;
+      box-shadow: 0 12px 28px rgba(23, 76, 143, 0.32);
+      z-index: 25;
+      display: grid;
+      place-items: center;
+      font-size: 21px;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 30;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      min-height: calc(64px + env(safe-area-inset-bottom));
+      padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
+      background: rgba(255, 255, 255, 0.94);
+      border-top: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      background: transparent;
+      color: #8b96aa;
+      font-size: 11px;
+      font-weight: 750;
+      border-radius: 8px;
+    }
+
+    .nav-btn svg {
+      width: 21px;
+      height: 21px;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .nav-btn.active {
+      color: var(--blue);
+      background: #edf4ff;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(150px + env(safe-area-inset-bottom));
+      transform: translateX(-50%) translateY(20px);
+      max-width: min(320px, calc(100vw - 32px));
+      opacity: 0;
+      z-index: 80;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(18, 30, 52, 0.92);
+      color: #fff;
+      font-size: 13px;
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (min-width: 620px) {
+      body {
+        display: flex;
+        justify-content: center;
+        padding: 24px 0;
+      }
+
+      .app {
+        width: 414px;
+        min-height: calc(100vh - 48px);
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 22px 70px rgba(22, 35, 61, 0.22);
+        position: relative;
+      }
+
+      .status,
+      .bottom-nav,
+      .fab,
+      .sheet,
+      .toast {
+        left: 50%;
+        right: auto;
+        width: 414px;
+        transform: translateX(-50%);
+      }
+
+      .status {
+        position: sticky;
+      }
+
+      .fab {
+        left: calc(50% + 157px);
+        width: 50px;
+        transform: none;
+      }
+
+      .toast {
+        width: auto;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .filter {
+        gap: 6px;
+      }
+
+      .chip {
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="status">
+      <span id="clock">09:41</span>
+      <span>智慧社区</span>
+      <span class="status-icons"><span class="signal"></span><span>5G</span><span class="battery"></span></span>
+    </div>
+
+    <section class="screen active" id="home">
+      <header class="hero">
+        <div class="hero-top">
+          <div>
+            <span class="eyebrow">0901 网格 · 今日工作台</span>
+            <h1>社工张三，您好</h1>
+            <p id="todayText">社区事项、居民服务和网格巡查集中处理</p>
+          </div>
+          <div class="avatar">张</div>
+        </div>
+        <div class="stats">
+          <div class="stat"><strong>286</strong><span>已录居民</span></div>
+          <div class="stat"><strong class="hot">3</strong><span>今日走访</span></div>
+          <div class="stat"><strong class="warn">5</strong><span>待处理诉求</span></div>
+          <div class="stat"><strong>18</strong><span>本月新增</span></div>
+        </div>
+      </header>
+
+      <div class="section">
+        <article class="card module">
+          <div class="module-head">
+            <div class="module-mark blue-bg">档</div>
+            <div class="module-title"><h2>一键建档</h2><p>数字化社区信息库</p></div>
+          </div>
+          <div class="grid">
+            <button class="action" data-screen="residents"><span class="action-icon blue-bg">册</span><span>居民台账</span></button>
+            <button class="action" data-screen="residentForm"><span class="action-icon blue-bg">加</span><span>新增居民</span></button>
+            <button class="action" data-screen="archive"><span class="action-icon violet-bg">AI</span><span>AI 归档</span></button>
+            <button class="action" data-screen="doc"><span class="action-icon slate-bg">文</span><span>公文助手</span></button>
+            <button class="action" data-sheet="report"><span class="action-icon slate-bg">表</span><span>数据报表</span></button>
+          </div>
+        </article>
+
+        <article class="card module">
+          <div class="module-head">
+            <div class="module-mark rose-bg">办</div>
+            <div class="module-title"><h2>一按通办</h2><p>居民诉求响应系统</p></div>
+          </div>
+          <div class="grid">
+            <button class="action" data-screen="appeals"><span class="action-icon rose-bg">诉<i class="badge">5</i></span><span>接诉即办</span></button>
+            <button class="action" data-screen="suggestions"><span class="action-icon violet-bg">议</span><span>居民建议</span></button>
+            <button class="action" data-screen="visit"><span class="action-icon teal-bg">访<i class="badge">3</i></span><span>入户走访</span></button>
+            <button class="action" data-screen="events"><span class="action-icon teal-bg">活</span><span>活动发布</span></button>
+          </div>
+        </article>
+
+        <article class="card module">
+          <div class="module-head">
+            <div class="module-mark teal-bg">巡</div>
+            <div class="module-title"><h2>一巡多办</h2><p>安全隐患巡查闭环</p></div>
+          </div>
+          <div class="grid">
+            <button class="action" data-screen="inspection"><span class="action-icon teal-bg">拍</span><span>拍照巡查</span></button>
+            <button class="action" data-sheet="tips"><span class="action-icon amber-bg">警<i class="badge">3</i></span><span>网格提示</span></button>
+            <button class="action" data-sheet="chat"><span class="action-icon violet-bg">智</span><span>政策智囊</span></button>
+          </div>
+        </article>
+
+        <article class="card feed">
+          <div class="tabs">
+            <button class="tab active" data-feed="policy">最新政策</button>
+            <button class="tab" data-feed="notice">内部告示</button>
+            <button class="tab" data-feed="meeting">会议通知</button>
+          </div>
+          <div class="feed-list active" id="feed-policy">
+            <div class="feed-item"><div class="feed-main"><span class="tag blue-bg">市级</span><h3>关于规范网格员入户走访工作流程的指导意见</h3><p>市社会工作局 · 2026-04-10</p></div><span class="dot"></span></div>
+            <div class="feed-item"><div class="feed-main"><span class="tag teal-bg">区级</span><h3>春季消防安全专项排查工作本周启动</h3><p>区应急管理局 · 2026-04-08</p></div><span class="dot"></span></div>
+            <div class="feed-item"><div class="feed-main"><span class="tag amber-bg">民政</span><h3>困难家庭生活救助申请受理工作提醒</h3><p>区民政局 · 2026-03-28</p></div></div>
+          </div>
+          <div class="feed-list" id="feed-notice">
+            <div class="feed-item"><div class="feed-main"><span class="tag rose-bg">紧急</span><h3>请各网格员本周内完成独居老人信息核查</h3><p>社区办公室 · 2026-04-14</p></div><span class="dot"></span></div>
+            <div class="feed-item"><div class="feed-main"><span class="tag violet-bg">告示</span><h3>4 月份网格员绩效考核表请于月底前提交</h3><p>内部系统 · 2026-04-11</p></div></div>
+          </div>
+          <div class="feed-list" id="feed-meeting">
+            <div class="feed-item"><div class="feed-main"><span class="tag teal-bg">例会</span><h3>本周四 14:00 召开网格员月度工作例会</h3><p>社区党委 · 2026-04-15</p></div><span class="dot"></span></div>
+            <div class="feed-item"><div class="feed-main"><span class="tag blue-bg">培训</span><h3>数字社区平台操作培训会将于本月 22 日举行</h3><p>技术支持组 · 2026-04-07</p></div></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="screen" id="residents">
+      <div class="page-head"><button class="back" data-screen="home">‹</button><div><h2>居民台账</h2><p>支持姓名、电话、标签快速检索</p></div><button class="secondary" data-screen="residentForm">新增</button></div>
+      <div class="content">
+        <label class="search"><span>查</span><input id="residentSearch" placeholder="搜索居民姓名或标签" /></label>
+        <div class="list" id="residentList"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="appeals">
+      <div class="page-head"><button class="back" data-screen="home">‹</button><div><h2>接诉即办</h2><p>按优先级处理居民诉求</p></div><button class="secondary" data-sheet="report">报表</button></div>
+      <div class="content">
+        <div class="filter">
+          <button class="chip active" data-filter="all">全部</button>
+          <button class="chip" data-filter="pending">待处理</button>
+          <button class="chip" data-filter="processing">处理中</button>
+          <button class="chip" data-filter="resolved">已完成</button>
+        </div>
+        <div class="list" id="appealList"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="inspection">
+      <div class="page-head"><button class="back" data-screen="home">‹</button><div><h2>上报安全隐患</h2><p>拍照、定位、描述后提交工单</p></div></div>
+      <div class="content">
+        <article class="card form-card"><span class="label">现场照片</span><div class="upload" id="photoUpload"><div>拍照 / 相册<br><strong>点击模拟上传现场照片</strong></div></div></article>
+        <article class="card form-card"><label class="label" for="riskAddress">隐患地址</label><input class="field" id="riskAddress" value="惠新南里 8 号楼一层消防通道" /></article>
+        <article class="card form-card"><label class="label" for="riskDesc">隐患描述</label><textarea id="riskDesc">消防通道堆放纸箱和旧家具，影响紧急疏散，需要物业尽快清理。</textarea></article>
+        <article class="card form-card"><label class="label" for="riskGrid">所属网格</label><select id="riskGrid"><option>0901 网格</option><option>0902 网格</option><option>0903 网格</option></select></article>
+        <button class="primary" data-toast="隐患工单已提交，状态为待派发">提交隐患工单</button>
+      </div>
+    </section>
+
+    <section class="screen" id="residentForm">
+      <div class="page-head"><button class="back" data-screen="home">‹</button><div><h2>新增居民</h2><p>录入基础信息和关怀标签</p></div></div>
+      <div class="content">
+        <article class="card form-card"><label class="label">姓名</label><input class="field" value="赵明" /></article>
+        <article class="card form-card"><label class="label">联系电话</label><input class="field" value="13800001234" /></article>
+        <article class="card form-card"><label class="label">居住地址</label><input class="field" value="惠新南里 12 号楼 2 单元 501" /></article>
+        <article class="card form-card"><label class="label">特殊标签</label><div><span class="mini-tag">独居老人</span><span class="mini-tag">慢病随访</span><span class="mini-tag">重点关怀</span></div></article>
+        <button class="primary" data-toast="居民档案已保存，并同步到 0901 网格">保存居民档案</button>
+      </div>
+    </section>
+
+    <section class="screen" id="archive">
+      <div class="page-head"><button class="back" data-screen="home">‹</button><div><h2>AI 智能归档</h2><p>上传材料后自动提取分类</p></div></div>
+      <div class="content">
+        <article class="card form-card">
+          <span class="label">上传图片</span>
+          <div class="archive-grid">
+            <div class="file-box">入户照片</div>
+            <div class="file-box">证明材料</div>
+            <div class="file-box">添加</div>
+          </div>
+        </article>
+        <article class="card form-card"><span class="label">文档总结</span><textarea>2026 年 4 月对李建国进行入户关怀，核实独居情况、用药需求和家庭联系人。</textarea><button class="primary" id="aiAssist" style="margin-top:12px">AI 辅助生成</button></article>
+        <article class="card archive-preview">
+          <dl>
+            <div><dt>档案类别</dt><dd>居民关怀记录</dd></div>
+            <div><dt>主体名称</dt><dd>李建国</dd></div>
+            <div><dt>地点位置</dt><dd>惠新南里 8 号楼</dd></div>
+            <div><dt>关键标签</dt><dd>独居老人 · 走访 · 用药</dd></div>
+          </dl>
+        </article>
+        <button class="primary" data-toast="材料已归档，等待档案管理员确认">确认归档并录入</button>
+      </div>
+    </section>
+
+    <section class="screen" id="doc">
+      <div class="page-head"><button class="back" data-screen="home">‹</button><div><h2>AI 公文助手</h2><p>选择模板，一键生成通知</p></div></div>
+      <div class="content">
+        <article class="card form-card"><span class="label">公文类型</span><button class="chip active">通知</button> <button class="chip">会议纪要</button> <button class="chip">工作简报</button></article>
+        <article class="card form-card"><label class="label">核心要点</label><textarea id="docInput">明天上午 10 点，二号楼停水检修，请居民提前储水，预计 12 点恢复。</textarea></article>
+        <button class="primary" id="generateDoc">生成公文</button>
+        <article class="card form-card" style="margin-top:12px"><span class="label">生成结果</span><div class="doc-result" id="docResult">关于二号楼停水检修的通知
+
+各位居民：
+因管线检修需要，二号楼将于明天上午 10:00 至 12:00 暂停供水。请大家提前做好储水准备，并相互转告。检修期间如有特殊需求，可联系社区服务站。
+
+0901 网格工作站</div></article>
+      </div>
+    </section>
+
+    <section class="screen" id="visit">
+      <div class="page-head"><button class="back" data-screen="home">‹</button><div><h2>入户走访</h2><p>根据网格提示快速生成走访记录</p></div></div>
+      <div class="content">
+        <article class="card form-card"><label class="label">走访对象</label><input class="field" value="李建国" /></article>
+        <article class="card form-card"><label class="label">走访类型</label><select><option>信息核查</option><option>生日关怀</option><option>政策宣传</option></select></article>
+        <article class="card form-card"><label class="label">走访记录</label><textarea>老人身体状况稳定，近期需要代办慢病报销材料。已提醒注意用电安全。</textarea></article>
+        <button class="primary" data-toast="走访记录已保存，并生成后续待办">保存走访记录</button>
+      </div>
+    </section>
+
+    <section class="screen" id="suggestions">
+      <div class="page-head"><button class="back" data-screen="home">‹</button><div><h2>居民建议</h2><p>汇总建议并跟进反馈</p></div></div>
+      <div class="content list">
+        <article class="card ticket"><div class="row"><h3>增设楼道照明</h3><span class="status-pill processing">评估中</span></div><p>惠新南里 3 号楼居民建议更换声控灯，夜间通行不便。</p></article>
+        <article class="card ticket"><div class="row"><h3>社区活动报名方式优化</h3><span class="status-pill pending">待回复</span></div><p>希望线下公告栏同步展示活动二维码和报名截止时间。</p></article>
+      </div>
+    </section>
+
+    <section class="screen" id="events">
+      <div class="page-head"><button class="back" data-screen="home">‹</button><div><h2>活动发布</h2><p>创建社区活动并同步居民端</p></div></div>
+      <div class="content">
+        <article class="card form-card"><label class="label">活动名称</label><input class="field" value="春季消防安全课堂" /></article>
+        <article class="card form-card"><label class="label">活动地点</label><input class="field" value="社区二层会议室" /></article>
+        <article class="card form-card"><label class="label">活动简介</label><textarea>邀请消防员讲解家庭用电、楼道堆物和灭火器使用方法。</textarea></article>
+        <button class="primary" data-toast="活动已发布，居民端可见">发布活动</button>
+      </div>
+    </section>
+
+    <section class="screen" id="mine">
+      <div class="page-head"><button class="back" data-screen="home">‹</button><div><h2>我的</h2><p>网格员资料与工作概览</p></div></div>
+      <div class="content list">
+        <article class="card resident"><div class="resident-avatar">张</div><div class="resident-main"><h3>张三</h3><p>0901 网格员 · 惠新南里社区</p></div></article>
+        <article class="card form-card"><span class="label">本周工作</span><div class="stats" style="margin:0;background:#f6f8fb;color:var(--ink)"><div class="stat"><strong style="color:var(--blue)">12</strong><span style="color:var(--muted)">走访</span></div><div class="stat"><strong style="color:var(--rose)">5</strong><span style="color:var(--muted)">诉求</span></div><div class="stat"><strong style="color:var(--teal)">8</strong><span style="color:var(--muted)">巡查</span></div><div class="stat"><strong style="color:var(--amber)">3</strong><span style="color:var(--muted)">报告</span></div></div></article>
+      </div>
+    </section>
+
+    <button class="fab" data-sheet="search" aria-label="万能搜索">搜</button>
+
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-screen="home" aria-label="工作台">
+        <svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M9 20v-6h6v6"></path></svg>
+        <span>工作台</span>
+      </button>
+      <button class="nav-btn" data-screen="appeals" aria-label="工单">
+        <svg viewBox="0 0 24 24"><path d="M7 3h10l3 3v18H4V3h3"></path><path d="M8 9h8"></path><path d="M8 13h8"></path><path d="M8 17h5"></path></svg>
+        <span>工单</span>
+      </button>
+      <button class="nav-btn" data-screen="mine" aria-label="我的">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
+        <span>我的</span>
+      </button>
+    </nav>
+  </main>
+
+  <div class="sheet" id="sheet">
+    <div class="sheet-panel">
+      <div class="handle"></div>
+      <div class="sheet-head"><h2 id="sheetTitle">功能展示</h2><button class="close" id="closeSheet">×</button></div>
+      <div id="sheetBody"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">操作成功</div>
+
+  <script>
+    const residents = [
+      { name: "李建国", phone: "139****0821", grid: "0901", tags: ["独居老人", "重点关怀"] },
+      { name: "张秀英", phone: "136****3922", grid: "0901", tags: ["低保家庭", "信息待核"] },
+      { name: "王秋兰", phone: "138****7619", grid: "0902", tags: ["生日关怀", "慢病随访"] },
+      { name: "赵明", phone: "137****5516", grid: "0903", tags: ["新迁入"] }
+    ];
+
+    const appeals = [
+      { title: "楼道堆物影响消防通道", location: "惠新南里 8 号楼", time: "今天 09:20", status: "pending", level: "高优先级", score: 92 },
+      { title: "小区健身器材损坏", location: "中心花园", time: "今天 10:35", status: "processing", level: "中优先级", score: 76 },
+      { title: "居民咨询高龄津贴申请", location: "12 号楼 2 单元", time: "昨天 16:12", status: "resolved", level: "普通", score: 48 },
+      { title: "夜间噪音扰民", location: "商业街北侧", time: "昨天 21:08", status: "pending", level: "中优先级", score: 81 }
+    ];
+
+    const statusText = {
+      pending: "待处理",
+      processing: "处理中",
+      resolved: "已完成"
+    };
+
+    const sheetContent = {
+      tips: {
+        title: "网格工作提示",
+        body: `<div class="tips-list">
+          <div class="tip"><span class="tip-icon blue-bg">生</span><div><h3>王秋兰生日关怀</h3><p>今日生日，建议上门探访并记录需求。</p></div></div>
+          <div class="tip urgent"><span class="tip-icon amber-bg">警</span><div><h3>李建国超过 30 天未走访</h3><p>独居老人信息核查逾期，请优先安排入户。</p></div></div>
+          <div class="tip"><span class="tip-icon violet-bg">核</span><div><h3>张秀英家庭成员待更新</h3><p>低保材料需要补充联系人和收入说明。</p></div></div>
+        </div>`
+      },
+      report: {
+        title: "月度数据报表",
+        body: `<div class="report-bars">
+          <div class="bar-row"><span>居民建档</span><div class="bar"><i style="width:86%"></i></div><strong>286</strong></div>
+          <div class="bar-row"><span>诉求办结</span><div class="bar"><i style="width:72%"></i></div><strong>42</strong></div>
+          <div class="bar-row"><span>入户走访</span><div class="bar"><i style="width:58%"></i></div><strong>31</strong></div>
+          <div class="bar-row"><span>巡查上报</span><div class="bar"><i style="width:46%"></i></div><strong>18</strong></div>
+        </div>`
+      },
+      chat: {
+        title: "政策智囊",
+        body: `<div class="tips-list">
+          <div class="tip"><span class="tip-icon violet-bg">问</span><div><h3>独居老人走访频次是多少？</h3><p>建议至少每月一次，重点对象可提高到每两周一次，并保留记录。</p></div></div>
+          <div class="tip"><span class="tip-icon teal-bg">答</span><div><h3>可生成办理口径</h3><p>居民咨询高龄津贴时，先核验年龄、户籍和银行卡信息，再引导提交申请材料。</p></div></div>
+          <button class="primary" data-toast="已模拟发送给 AI 助手">继续提问</button>
+        </div>`
+      },
+      search: {
+        title: "万能搜索",
+        body: `<label class="search"><span>搜</span><input placeholder="输入居民、工单、政策关键词" value="李建国" /></label>
+        <div class="tips-list">
+          <div class="tip"><span class="tip-icon blue-bg">人</span><div><h3>李建国</h3><p>0901 网格 · 独居老人 · 最近走访 31 天前</p></div></div>
+          <div class="tip"><span class="tip-icon rose-bg">单</span><div><h3>楼道堆物影响消防通道</h3><p>关联地点：惠新南里 8 号楼，待处理。</p></div></div>
+        </div>`
+      }
+    };
+
+    function setClock() {
+      const now = new Date();
+      document.getElementById("clock").textContent = now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+      document.getElementById("todayText").textContent = `${now.getMonth() + 1}月${now.getDate()}日 · 社区事项、居民服务和网格巡查集中处理`;
+    }
+
+    function showScreen(id) {
+      document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
+      document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.screen === id));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function renderResidents(keyword = "") {
+      const lower = keyword.trim().toLowerCase();
+      const list = residents.filter(item => {
+        return !lower || item.name.toLowerCase().includes(lower) || item.phone.includes(lower) || item.tags.join("").toLowerCase().includes(lower);
+      });
+      document.getElementById("residentList").innerHTML = list.map(item => `
+        <article class="card resident">
+          <div class="resident-avatar">${item.name.slice(0, 1)}</div>
+          <div class="resident-main">
+            <div class="row"><h3>${item.name}</h3><span class="mini-tag">${item.grid} 网格</span></div>
+            <p>${item.phone}</p>
+            <div>${item.tags.map(tag => `<span class="mini-tag">${tag}</span>`).join("")}</div>
+          </div>
+        </article>`).join("") || `<article class="card form-card"><p>未找到匹配居民</p></article>`;
+    }
+
+    function renderAppeals(filter = "all") {
+      const list = appeals.filter(item => filter === "all" || item.status === filter);
+      document.getElementById("appealList").innerHTML = list.map(item => `
+        <article class="card ticket" data-status="${item.status}">
+          <div class="row"><h3>${item.title}</h3><span class="status-pill ${item.status}">${statusText[item.status]}</span></div>
+          <p>${item.location} · ${item.time}</p>
+          <div><span class="mini-tag">${item.level}</span><span class="mini-tag">优先分 ${item.score}</span></div>
+        </article>`).join("") || `<article class="card form-card"><p>当前筛选下暂无工单</p></article>`;
+    }
+
+    function openSheet(type) {
+      const data = sheetContent[type];
+      if (!data) return;
+      document.getElementById("sheetTitle").textContent = data.title;
+      document.getElementById("sheetBody").innerHTML = data.body;
+      document.getElementById("sheet").classList.add("open");
+    }
+
+    function closeSheet() {
+      document.getElementById("sheet").classList.remove("open");
+    }
+
+    let toastTimer;
+    function showToast(text) {
+      const toast = document.getElementById("toast");
+      toast.textContent = text;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    document.addEventListener("click", event => {
+      const screenBtn = event.target.closest("[data-screen]");
+      if (screenBtn) showScreen(screenBtn.dataset.screen);
+
+      const sheetBtn = event.target.closest("[data-sheet]");
+      if (sheetBtn) openSheet(sheetBtn.dataset.sheet);
+
+      const toastBtn = event.target.closest("[data-toast]");
+      if (toastBtn) showToast(toastBtn.dataset.toast);
+    });
+
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(item => item.classList.remove("active"));
+        document.querySelectorAll(".feed-list").forEach(item => item.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(`feed-${tab.dataset.feed}`).classList.add("active");
+      });
+    });
+
+    document.querySelectorAll(".chip[data-filter]").forEach(chip => {
+      chip.addEventListener("click", () => {
+        document.querySelectorAll(".chip[data-filter]").forEach(item => item.classList.remove("active"));
+        chip.classList.add("active");
+        renderAppeals(chip.dataset.filter);
+      });
+    });
+
+    document.getElementById("residentSearch").addEventListener("input", event => renderResidents(event.target.value));
+    document.getElementById("closeSheet").addEventListener("click", closeSheet);
+    document.getElementById("sheet").addEventListener("click", event => {
+      if (event.target.id === "sheet") closeSheet();
+    });
+    document.getElementById("photoUpload").addEventListener("click", () => {
+      document.getElementById("photoUpload").innerHTML = "<div>已选择现场照片<br><strong>IMG_0901_firepassage.jpg</strong></div>";
+      showToast("已模拟上传现场照片");
+    });
+    document.getElementById("aiAssist").addEventListener("click", () => showToast("AI 已识别居民、地点和关怀标签"));
+    document.getElementById("generateDoc").addEventListener("click", () => {
+      const input = document.getElementById("docInput").value.trim();
+      document.getElementById("docResult").textContent = `通知\n\n各位居民：\n${input || "请关注社区最新安排。"}\n\n请大家相互转告，如有疑问可联系社区服务站。\n\n0901 网格工作站`;
+      showToast("公文已生成");
+    });
+
+    setClock();
+    renderResidents();
+    renderAppeals();
+    setInterval(setClock, 30000);
+  </script>
+</body>
+</html>
